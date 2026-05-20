@@ -1,0 +1,192 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f67eeec1-f8fd-4578-b5a9-ef5f2a72d8bf",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        272,
+        0
+      ],
+      "id": "2c989e3c-7d64-4e54-904d-1278bc7d7aa4",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n ke saare incoming items (10 users) ko get karo\nconst allItems = $input.all();\n\n// Sirf pehle 3 items (users) ko slice karo\nconst topThreeItems = allItems.slice(0, 3);\n\n// Data ko map aur reshape karo jaisa assignment me chahiye\nreturn topThreeItems.map(item => {\n    const user = item.json;\n    return {\n        json: {\n            userId: user.id,\n            name: user.name,\n            email: user.email,\n            companyName: user.company ? user.company.name : 'N/A'\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -16
+      ],
+      "id": "d5edc142-faf9-46c6-9c12-cca722cd54a7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://jsonplaceholder.typicode.com/posts?userId={{ $json.userId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        864,
+        0
+      ],
+      "id": "636a8763-9f13-466c-a311-18d6b31f4add",
+      "name": "HTTP Request1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "66cb29cc-ec5c-4a5d-89a4-91e796496d35",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1136,
+        -32
+      ],
+      "id": "26cb5b1d-726e-4290-8607-b777f7483e66",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=🚨 Morning Brief Update: User ID {{ $json.userId }} has active content spikes! Post Sample: \"{{ $json.title }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        -48
+      ],
+      "id": "8dfe2225-210b-4001-8aa6-a16eef30513a",
+      "name": "Discord",
+      "webhookId": "72d17c4d-ce48-486d-a443-80c916e98d49",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "EqzLepYB6IGz2Huc",
+          "name": "Discord Webhook account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1d18f061-78e8-4fcb-9a84-22d72b2d8104",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e16847bc22f129e70cb3e4e3962416bfc1a075c86fbd0fc8e7a28c9021765f12"
+  },
+  "id": "GbvvzkZfv6xec0yh",
+  "tags": []
+}
